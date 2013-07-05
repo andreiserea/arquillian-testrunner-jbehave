@@ -16,46 +16,59 @@
  */
 package org.jboss.arquillian.jbehave.client;
 
+import java.io.File;
+import java.util.ArrayList;
 import java.util.Collection;
 
 import org.jboss.arquillian.container.test.spi.RemoteLoadableExtension;
 import org.jboss.arquillian.container.test.spi.client.deployment.AuxiliaryArchiveAppender;
 import org.jboss.arquillian.jbehave.container.JBehaveContainerExtension;
 import org.jboss.arquillian.jbehave.core.ArquillianInstanceStepsFactory;
-import org.jboss.arquillian.jbehave.core.StepEnricherProvider;
+import org.jboss.arquillian.junit.ArquillianJbehaveRunner;
 import org.jboss.shrinkwrap.api.Archive;
+import org.jboss.shrinkwrap.api.ArchivePath;
+import org.jboss.shrinkwrap.api.Filter;
+import org.jboss.shrinkwrap.api.Filters;
 import org.jboss.shrinkwrap.api.ShrinkWrap;
 import org.jboss.shrinkwrap.api.spec.JavaArchive;
-import org.jboss.shrinkwrap.resolver.api.DependencyResolvers;
-import org.jboss.shrinkwrap.resolver.api.maven.MavenDependencyResolver;
+
 
 /**
  * Deployment appender that adds the JBehave-Core distribution to a deployment.
  * Also adds the classes and files necessary for the remote loadable extension.
  * 
- * @author Vineet Reynolds
- *
+ * 
  */
-public class JBehaveCoreDeploymentAppender implements AuxiliaryArchiveAppender
-{
+public class JBehaveCoreDeploymentAppender implements AuxiliaryArchiveAppender {
 
-   @Override
-   public Archive<?> createAuxiliaryArchive()
-   {
-      Collection<JavaArchive> archives = DependencyResolvers.use(MavenDependencyResolver.class)
-            .goOffline()
-            .loadMetadataFromPom("pom.xml")
-            .artifact("org.jbehave:jbehave-core:jar:3.5.4")
-            .resolveAs(JavaArchive.class);
-      JavaArchive archive = ShrinkWrap.create(JavaArchive.class, "arquillian-jbehave.jar");
-      for (Archive<JavaArchive> element : archives)
-      {
-         archive.merge(element);
-      }
-      
-      archive.addClasses(JBehaveContainerExtension.class, ArquillianInstanceStepsFactory.class, StepEnricherProvider.class);
-      archive.addAsServiceProvider(RemoteLoadableExtension.class, JBehaveContainerExtension.class);
-      return archive;
-   }
+	@Override
+	public Archive<?> createAuxiliaryArchive() {
+		Collection<JavaArchive> archives = new ArrayList<>();
+		archives.add(ShrinkWrap.createFromZipFile(JavaArchive.class, new File(
+				"../lib/bdd/jbehave-core-3.7.5-SNAPSHOT.jar")));
+		archives.add(ShrinkWrap.createFromZipFile(JavaArchive.class, new File("../lib/bdd/xstream-1.3.1.jar")));
+		archives.add(ShrinkWrap.createFromZipFile(JavaArchive.class, new File("../lib/bdd/paranamer-2.4.jar")));
+		archives.add(ShrinkWrap.createFromZipFile(JavaArchive.class, new File(
+				"../lib/javassist/javassist-3.15.0-GA.jar")));
+		archives.add(ShrinkWrap.createFromZipFile(JavaArchive.class, new File("../lib/bdd/freemarker-2.3.16.jar")));
+		archives.add(ShrinkWrap.createFromZipFile(JavaArchive.class, new File("../lib/bdd/plexus-utils-2.0.5.jar")));
+		archives.add(ShrinkWrap.createFromZipFile(JavaArchive.class,
+				new File("../lib/bdd/hamcrest-integration-1.1.jar")));
+		archives.add(ShrinkWrap.createFromZipFile(JavaArchive.class, new File("../lib/bdd/hamcrest-core-1.1.jar")));
+		archives.add(ShrinkWrap.createFromZipFile(JavaArchive.class, new File("../lib/bdd/xpp3_min-1.1.4c.jar")));
+
+		JavaArchive archive = ShrinkWrap.create(JavaArchive.class, "arquillian-jbehave.jar");
+		Filter<ArchivePath> filter = Filters.exclude("/META-INF.*");
+		for (Archive<JavaArchive> element : archives) {
+			archive.merge(element, filter);
+		}
+
+		archive.addPackage("com.capgemini.javassist").addPackage("de.codecentric.jbehave.junit.monitoring")
+				.addClass(ArquillianJbehaveRunner.class).addPackage("com.capgemini.arquillian.utils")
+				.addPackage("com.capgemini.arquillian.jbehave.injection")
+				.addPackage("com.capgemini.arquillian.jbehave.container").addPackages(true, "com.capgemini.jbehave");
+		archive.addAsServiceProvider(RemoteLoadableExtension.class, JBehaveContainerExtension.class);
+		return archive;
+	}
 
 }

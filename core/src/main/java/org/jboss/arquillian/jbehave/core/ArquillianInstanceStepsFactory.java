@@ -50,9 +50,11 @@ public class ArquillianInstanceStepsFactory extends InstanceStepsFactory
    {
       Object instance = super.createInstanceOfType(type);
       Collection<TestEnricher> stepEnrichers = StepEnricherProvider.getEnrichers();
-      for (TestEnricher stepEnricher : stepEnrichers)
-      {
-         stepEnricher.enrich(instance);
+      if (stepEnrichers != null) {
+          for (TestEnricher stepEnricher : stepEnrichers)
+          {
+             stepEnricher.enrich(instance);
+          }
       }
       return instance;
    }

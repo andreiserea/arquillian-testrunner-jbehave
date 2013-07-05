@@ -20,21 +20,14 @@ import org.jboss.arquillian.container.test.spi.client.deployment.AuxiliaryArchiv
 import org.jboss.arquillian.core.spi.LoadableExtension;
 import org.jboss.arquillian.jbehave.core.StepEnricherProvider;
 
-/**
- * THe JBehave extension that registers the archive appenders and observers.
- * 
- * @author Vineet Reynolds
- *
- */
-public class JBehaveExtension implements LoadableExtension
-{
 
-   @Override
-   public void register(ExtensionBuilder builder)
-   {
-      builder.service(AuxiliaryArchiveAppender.class, JBehaveCoreDeploymentAppender.class)
-             .observer(ViewResourcesUnpacker.class)
-             .observer(StepEnricherProvider.class);
-   }
+public class JBehaveExtension implements LoadableExtension {
+
+	@Override
+	public void register(ExtensionBuilder builder) {
+		builder.service(AuxiliaryArchiveAppender.class, JBehaveCoreDeploymentAppender.class)
+				.service(AuxiliaryArchiveAppender.class, ArquillianJBehaveRunnerDeploymentAppender.class)
+				.observer(StepEnricherProvider.class);
+	}
 
 }
